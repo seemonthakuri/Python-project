@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="panel">
+  <h2>Log a new outage</h2>
+  <form method="POST" action="{{ url_for('log_outage') }}">
+    {{ log_form.hidden_tag() }}
+    {{ log_form.note(placeholder="e.g. whole street out, or leave blank") }}
+    <button class="primary" type="submit">{{ log_form.submit.label.text }}</button>
+  </form>
+</div>
+
+{% if chart_data %}
+<div class="panel">
+  <h2>Outage duration by day</h2>
+  <img src="data:image/png;base64,{{ chart_data }}" alt="Chart of outage duration by day" style="max-width: 100%; border-radius: 6px;">
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Ongoing ({{ ongoing|length }})</h2>
+  {% if ongoing %}
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Started</th><th>Note</th><th>Status</th><th></th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for o in ongoing %}
+      <tr>
+        <td>#{{ o.id }}</td>
+        <td>{{ o.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>{{ o.note or "—" }}</td>
+        <td><span class="status-badge status-ongoing">ongoing</span></td>
+        <td>
+          <form class="inline" method="POST" action="{{ url_for('resolve_outage', outage_id=o.id) }}">
+            {{ resolve_form.hidden_tag() }}
+            <button type="submit">Mark resolved</button>
+          </form>
+        </td>
+        <td>
+          <form class="inline" method="POST" action="{{ url_for('delete_outage', outage_id=o.id) }}"
+                onsubmit="return confirm('Remove this entry?');">
+            {{ delete_form.hidden_tag() }}
+            <button class="danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No ongoing outages. Power's up.</p>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>History ({{ resolved|length }})</h2>
+  {% if resolved %}
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Started</th><th>Ended</th><th>Duration</th><th>Note</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for o in resolved %}
+      <tr>
+        <td>#{{ o.id }}</td>
+        <td>{{ o.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>{{ o.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>{{ o.duration_human }}</td>
+        <td>{{ o.note or "—" }}</td>
+        <td>
+          <form class="inline" method="POST" action="{{ url_for('delete_outage', outage_id=o.id) }}"
+                onsubmit="return confirm('Remove this entry?');">
+            {{ delete_form.hidden_tag() }}
+            <button class="danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No resolved outages yet.</p>
+  {% endif %}
+</div>
+
+{% endblock %}
