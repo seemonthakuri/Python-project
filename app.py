@@ -1,7 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, flash, jsonify, abort
 
+from datetime import datetime, timezone
 from config import Config
-from models import db, Outage
+from models import db, Outage, utcnow
 from forms import LogOutageForm, ResolveForm, DeleteForm
 from analytics import build_outage_chart
 
@@ -30,22 +31,50 @@ def register_routes(app):
         ongoing = [o for o in outages if o.status == "ongoing"]
         resolved = [o for o in outages if o.status == "resolved"]
         chart_data = build_outage_chart(outages)
+        resolved_count = len(resolved)
+        total_seconds = sum(o.duration_seconds for o in resolved)
+        total_hours = round(total_seconds / 3600, 1) if resolved else 0
+
+        if resolved_count:
+            avg_seconds = total_seconds / resolved_count
+            avg_hours, avg_minutes = divmod(int(avg_seconds // 60), 60)
+        else:
+            avg_hours, avg_minutes = 0, 0
+
+        now = datetime.now()
 
         return render_template(
-            "dashboard.html",
+         "dashboard.html",
             ongoing=ongoing,
             resolved=resolved,
             log_form=log_form,
             resolve_form=resolve_form,
             delete_form=delete_form,
             chart_data=chart_data,
+            resolved_count=resolved_count,
+            total_hours=total_hours,
+            avg_hours=avg_hours,
+            avg_minutes=avg_minutes,
+            now=now
         )
-
+        
     @app.route("/log", methods=["POST"])
     def log_outage():
         form = LogOutageForm()
         if form.validate_on_submit():
-            outage = Outage(note=form.note.data or None)
+            start = form.start_time.data or utcnow()
+            if start.tzinfo is None:
+                start = start.replace(tzinfo=timezone.utc)
+
+            end = form.end_time.data
+            if end is not None and end.tzinfo is None:
+                end = end.replace(tzinfo=timezone.utc)
+
+            if end is not None and end <= start:
+                flash("End time must be after the start time.", "error")
+                return redirect(url_for("dashboard"))
+
+            outage = Outage(note=form.note.data or None, start_time=start, end_time=end)
             db.session.add(outage)
             db.session.commit()
             flash("Outage logged.", "success")

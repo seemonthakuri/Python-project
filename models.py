@@ -51,8 +51,11 @@ class Outage(db.Model):
             parts.append(f"{rd.days}d")
         if rd.hours:
             parts.append(f"{rd.hours}h")
-        # always show minutes so very short outages don't render blank
-        parts.append(f"{rd.minutes}m")
+        if rd.minutes:
+            parts.append(f"{rd.minutes}m")
+        if not parts:
+            # outage lasted under a minute — don't render a blank duration
+            return "<1m"
         return " ".join(parts)
 
     def resolve(self):

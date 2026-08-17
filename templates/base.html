@@ -24,8 +24,10 @@
       padding: 2rem 1rem;
     }
     .wrap { max-width: 900px; margin: 0 auto; }
-    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-    .subtitle { color: var(--muted); margin-top: 0; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    h1 { font-size: 1.8rem; margin-bottom: 0.35rem; color: var(--amber); }
+    .subtitle { color: var(--muted); margin-top: 0; font-size: 0.95rem; }
+    
     .panel {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -33,10 +35,12 @@
       padding: 1.25rem;
       margin-bottom: 1.5rem;
     }
-    .panel h2 { margin-top: 0; font-size: 1.05rem; }
+    .panel h2 { margin-top: 0; font-size: 1.05rem; color: var(--amber); }
+
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    th, td { text-align: left; padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--border); }
+    th, td { text-align: left; padding: 0.5rem 1.25rem 0.5rem 0.4rem; border-bottom: 1px solid var(--border); }
     th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+
     .status-badge {
       display: inline-block;
       padding: 0.15rem 0.5rem;
@@ -46,6 +50,56 @@
     }
     .status-ongoing { background: rgba(240,165,0,0.15); color: var(--amber); }
     .status-resolved { background: rgba(62,207,142,0.15); color: var(--green); }
+
+    .history-wrap { }
+    .history-header table,
+    .history-scroll table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+    .history-header th, .history-scroll td {
+        text-align: left;
+        padding: 0.5rem 0.4rem;
+        border-bottom: 1px solid var(--border);
+    }
+    .history-header th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+    }
+    .history-scroll {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .stats-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .stat {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        flex: 1;
+        min-width: 140px;
+    }
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-top: 0.15rem;
+    }
+
     form.inline { display: inline; }
     button {
       background: var(--border);
@@ -58,14 +112,17 @@
     }
     button.primary { background: var(--amber); color: #1a1300; border-color: var(--amber); font-weight: 600; }
     button.danger:hover { background: var(--red); border-color: var(--red); }
-    input[type=text] {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 6px;
-      padding: 0.5rem;
-      width: 100%;
-      margin-bottom: 0.6rem;
+    input[type=text], input[type=datetime-local] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 0.5rem;
+    width: 100%;
+    margin-bottom: 0.6rem;
+    }
+    input[type=datetime-local]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
     }
     .flash { padding: 0.6rem 0.9rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }
     .flash-success { background: rgba(62,207,142,0.12); color: var(--green); border: 1px solid rgba(62,207,142,0.3); }
@@ -77,8 +134,10 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>⚡ Load-Shedding Logger</h1>
-    <p class="subtitle">Track power outages, durations calculated automatically.</p>
+    <div class="header">
+      <h1>⚡ Load-Shedding Logger</h1>
+      <p class="subtitle">Track Power Outages</p>
+    </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

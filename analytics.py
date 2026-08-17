@@ -35,14 +35,20 @@ def build_outage_chart(outages):
     daily = df.groupby("date")["duration_hours"].sum().sort_index()
 
     fig, ax = plt.subplots(figsize=(7, 3.2))
-    ax.bar(daily.index.astype(str), daily.values, color="#f0a500")
-    ax.set_ylabel("Hours without power")
-    ax.set_title("Outage duration by day")
-    ax.tick_params(axis="x", rotation=45)
+   
+
+    ax.bar(daily.index.astype(str), daily.values, color="#1B3F62")
+    ax.set_ylabel("Hours without power", color="#D4CFC9", fontweight="bold")
+    ax.set_title("Outage duration by day", color="#D4CFC9", fontweight="bold")
+    ax.tick_params(axis="x", rotation=45, colors="white")
+    ax.tick_params(axis="y", colors="white")
+    for spine in ax.spines.values():
+        spine.set_color("white")
     fig.tight_layout()
 
     buf = BytesIO()
-    fig.savefig(buf, format="png", dpi=110)
+    fig.savefig(buf, format="png", dpi=110, transparent=True)
+
     plt.close(fig)  # free the figure - matters if the app stays running
     buf.seek(0)
 

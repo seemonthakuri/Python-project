@@ -2,10 +2,33 @@
 {% block content %}
 
 <div class="panel">
+  <h2>Summary</h2>
+  <div class="stats-row">
+  <div class="stat">
+    <div class="stat-value">{{ resolved_count }}</div>
+    <div class="stat-label">Outages logged</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">{{ total_hours }}h</div>
+    <div class="stat-label">Total without power(hour)</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">{% if avg_hours %}{{ avg_hours }}h {% endif %}{{ avg_minutes }}m</div>
+    <div class="stat-label">Average per outage(minute)</div>
+  </div>
+</div>
+</div>
+
+<div class="panel">
   <h2>Log a new outage</h2>
   <form method="POST" action="{{ url_for('log_outage') }}">
     {{ log_form.hidden_tag() }}
-    {{ log_form.note(placeholder="e.g. whole street out, or leave blank") }}
+    {{ log_form.note(placeholder="e.g. place or street name") }}
+    <label for="start_time">{{ log_form.start_time.label.text }}</label>
+    {{ log_form.start_time(max=now.strftime('%Y-%m-%dT%H:%M')) }}
+
+    <label for="end_time">{{ log_form.end_time.label.text }}</label>
+    {{ log_form.end_time(max=now.strftime('%Y-%m-%dT%H:%M')) }}
     <button class="primary" type="submit">{{ log_form.submit.label.text }}</button>
   </form>
 </div>
@@ -22,7 +45,7 @@
   {% if ongoing %}
   <table>
     <thead>
-      <tr><th>ID</th><th>Started</th><th>Note</th><th>Status</th><th></th><th></th></tr>
+      <tr><th>ID</th><th>Started Date</th><th>Location</th><th>Status</th><th></th><th></th></tr>
     </thead>
     <tbody>
       {% for o in ongoing %}
@@ -56,29 +79,43 @@
 <div class="panel">
   <h2>History ({{ resolved|length }})</h2>
   {% if resolved %}
-  <table>
-    <thead>
-      <tr><th>ID</th><th>Started</th><th>Ended</th><th>Duration</th><th>Note</th><th></th></tr>
-    </thead>
-    <tbody>
-      {% for o in resolved %}
-      <tr>
-        <td>#{{ o.id }}</td>
-        <td>{{ o.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
-        <td>{{ o.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
-        <td>{{ o.duration_human }}</td>
-        <td>{{ o.note or "—" }}</td>
-        <td>
-          <form class="inline" method="POST" action="{{ url_for('delete_outage', outage_id=o.id) }}"
-                onsubmit="return confirm('Remove this entry?');">
-            {{ delete_form.hidden_tag() }}
-            <button class="danger" type="submit">Delete</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="history-wrap">
+    <div class="history-header">
+      <table>
+        <colgroup>
+          <col style="width:8%"><col style="width:20%"><col style="width:20%"><col style="width:12%"><col style="width:30%"><col style="width:10%">
+        </colgroup>
+        <thead>
+          <tr><th>ID</th><th>Started</th><th>Ended</th><th>Duration</th><th>Location</th><th></th></tr>
+        </thead>
+      </table>
+    </div>
+    <div class="history-scroll">
+      <table>
+        <colgroup>
+          <col style="width:8%"><col style="width:20%"><col style="width:20%"><col style="width:12%"><col style="width:30%"><col style="width:10%">
+        </colgroup>
+        <tbody>
+          {% for o in resolved %}
+          <tr>
+            <td>#{{ o.id }}</td>
+            <td>{{ o.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ o.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ o.duration_human }}</td>
+            <td>{{ o.note or "—" }}</td>
+            <td>
+              <form class="inline" method="POST" action="{{ url_for('delete_outage', outage_id=o.id) }}"
+                    onsubmit="return confirm('Remove this entry?');">
+                {{ delete_form.hidden_tag() }}
+                <button class="danger" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
   {% else %}
   <p class="empty">No resolved outages yet.</p>
   {% endif %}
